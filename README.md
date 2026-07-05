@@ -44,7 +44,7 @@ npm run typecheck      # TypeScript check
 
 The HTML report is written to `playwright-report/` after every run.
 
-## CI/CD pipelines
+## CI/CD integration pipelines
 
 ### 1. `playwright-tests.yml` â€” regression on main
 Triggers on every **push to `main`** (and manually via *workflow_dispatch*). Runs the full suite and uploads the **Playwright HTML report** as a build artifact (`playwright-report`, kept 30 days). Download it from the workflow run page and open `index.html`.
