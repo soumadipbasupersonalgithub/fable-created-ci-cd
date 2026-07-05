@@ -7,6 +7,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 concurrency:
   group: pr-auto-review-${{ github.event.pull_request.number }}
@@ -86,6 +87,11 @@ jobs:
 
       - name: Squash-merge PR into main
         run: gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch
+
+      # Pushes made with GITHUB_TOKEN don't fire push-triggered workflows,
+      # so kick off the main regression run (and its HTML report) explicitly.
+      - name: Trigger post-merge regression run on main
+        run: gh workflow run "Playwright Tests" --repo "$REPO" --ref main
 
   notify-failure:
     name: Notify PR author of failure
