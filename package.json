@@ -1,0 +1,35 @@
+{
+  "name": "swaglabs-playwright-framework",
+  "version": "1.0.0",
+  "description": "Playwright automation framework covering the positive user flows of Swag Labs (saucedemo.com)",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soumadipbasupersonalgithub/fable-created-ci-cd.git"
+  },
+  "keywords": [
+    "playwright",
+    "automation",
+    "saucedemo",
+    "swag-labs",
+    "e2e"
+  ],
+  "author": "Soumadip Basu",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/soumadipbasupersonalgithub/fable-created-ci-cd/issues"
+  },
+  "homepage": "https://github.com/soumadipbasupersonalgithub/fable-created-ci-cd#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3"
+  }
+}

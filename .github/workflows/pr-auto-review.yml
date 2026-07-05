@@ -1,0 +1,139 @@
+name: PR Auto Review & Merge
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-auto-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Automated PR review
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: "Criterion 1 — TypeScript compiles cleanly"
+        run: npm run typecheck
+
+      - name: "Criterion 2 — no focused (.only) or skipped (.skip) tests committed"
+        run: |
+          if grep -rnE "\.(only|skip)\(" tests --include="*.ts"; then
+            echo "::error::Focused or skipped tests found. Remove .only/.skip before merging."
+            exit 1
+          fi
+          echo "No focused or skipped tests found."
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: "Criterion 3 — full Playwright regression suite passes"
+        run: npx playwright test
+
+      - name: Upload Playwright HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-pr-${{ github.event.pull_request.number }}
+          path: playwright-report/
+          retention-days: 30
+
+  auto-merge:
+    name: Approve & merge PR
+    needs: review
+    if: success() && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Approve PR with automated review
+        continue-on-error: true
+        run: |
+          gh pr review "$PR_NUMBER" --repo "$REPO" --approve --body "$(cat <<'EOF'
+          ✅ **Automated review passed**
+
+          | Criterion | Result |
+          |---|---|
+          | TypeScript compiles cleanly | ✅ |
+          | No focused/skipped tests | ✅ |
+          | Full Playwright regression suite | ✅ |
+
+          This PR meets all merge criteria and will be merged automatically.
+          EOF
+          )"
+
+      - name: Squash-merge PR into main
+        run: gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch
+
+  notify-failure:
+    name: Notify PR author of failure
+    needs: review
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+    steps:
+      - name: Comment on PR with failure details
+        continue-on-error: true
+        run: |
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$(cat <<EOF
+          ❌ **Automated review failed — this PR cannot be auto-merged.**
+
+          One or more merge criteria were not met (TypeScript typecheck, no focused/skipped tests, full Playwright regression suite).
+
+          👉 [Inspect the failed run and Playwright report]($RUN_URL)
+
+          Fix the issues and push a new commit to re-trigger the automated review.
+          EOF
+          )"
+
+      - name: Send failure email
+        if: env.MAIL_USERNAME != '' && env.MAIL_PASSWORD != ''
+        uses: dawidd6/action-send-mail@v6
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "❌ PR #${{ github.event.pull_request.number }} failed automated review — ${{ github.repository }}"
+          to: soumadipbasu333@gmail.com
+          from: Swag Labs CI <${{ secrets.MAIL_USERNAME }}>
+          html_body: |
+            <h2>❌ Pull request failed automated review</h2>
+            <p><b>Repository:</b> ${{ github.repository }}</p>
+            <p><b>PR #${{ github.event.pull_request.number }}:</b> ${{ github.event.pull_request.title }}</p>
+            <p><b>Author:</b> ${{ github.event.pull_request.user.login }}</p>
+            <p><b>Branch:</b> ${{ github.head_ref }}</p>
+            <p>The PR did not meet the merge criteria (TypeScript typecheck, no focused/skipped tests,
+            full Playwright regression suite) and was <b>not</b> merged to <code>main</code>.</p>
+            <p><a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+            Inspect the failed workflow run and Playwright report</a></p>
