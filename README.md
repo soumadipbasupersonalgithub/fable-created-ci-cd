@@ -75,3 +75,6 @@ The failure email is sent through Gmail SMTP. Add two repository secrets under *
 Until the secrets are configured the email step is skipped gracefully — the PR comment is always posted.
 
 > **Note:** Auto-merge applies to branches in this repository (not forks), which is the standard security model for GitHub Actions tokens.
+
+---
+_Auto-merge system verified via demo PR._
