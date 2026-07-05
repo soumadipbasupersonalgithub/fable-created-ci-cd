@@ -1,4 +1,4 @@
-﻿# SwagSauce Labs Playwright Automation Framework
+﻿# SwagSauce Labs Playwright Web Automation Framework
 
 End-to-end automation framework built with [Playwright](https://playwright.dev/) + TypeScript that covers all **positive user flows** of the [Swag Labs](https://www.saucedemo.com/) demo store, with CI/CD on GitHub Actions and a fully automated PR review & merge system.
 
