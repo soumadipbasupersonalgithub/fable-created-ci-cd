@@ -6,7 +6,7 @@ test.describe('Cart - positive flows', () => {
     // loggedIn fixture signs in as standard_user
   });
 
-  test('adding products updates the cart badge and swaps the button to Remove', async ({
+  tes('adding products updates the cart badge and swaps the button to Remove', async ({
     inventoryPage,
     header,
   }) => {
