@@ -4,7 +4,7 @@ E2E test framework for https://www.saucedemo.com using Playwright Test + TypeScr
 
 ## Commands
 
-- `npm test` — run the full suite (chromium only)
+- `npm test` — run the full suite (chromium)
 - `npx playwright test tests/checkout.spec.ts` — run a single spec
 - `npm run typecheck` — `tsc --noEmit`; the only static gate (no ESLint/Prettier in this repo)
 
