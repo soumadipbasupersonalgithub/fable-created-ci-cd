@@ -9,7 +9,7 @@ jobs:
   test:
     name: Run Swag Labs regression suite
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

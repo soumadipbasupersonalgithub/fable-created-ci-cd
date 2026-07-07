@@ -63,6 +63,9 @@ Triggers on every **pull request to `main`** and enforces these merge criteria:
 
 The Playwright HTML report is uploaded as an artifact for every PR run as well (`playwright-report-pr-<number>`).
 
+### 3. `claude-review.yml` - Claude Code AI review
+Runs [Claude Code](https://github.com/anthropics/claude-code-action) on every **pull request** (opened/synchronize) with a correctness-focused prompt (async bugs, flakiness, false-positive tests, fixture/config regressions - no style nitpicks; criteria live in `CLAUDE.md`). Claude posts inline comments plus a short summary on the PR. You can also mention **`@claude`** in any PR comment to ask questions or request a re-review. Authentication uses the `CLAUDE_CODE_OAUTH_TOKEN` repository secret (Claude Pro OAuth token via `claude setup-token`); the workflow has read-only repo access and cannot push commits.
+
 ### Email notification setup (one-time)
 
 The failure email is sent through Gmail SMTP. Add two repository secrets under **Settings â†’ Secrets and variables â†’ Actions**:
