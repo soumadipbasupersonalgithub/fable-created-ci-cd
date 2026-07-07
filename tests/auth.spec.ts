@@ -36,5 +36,6 @@ test.describe('Authentication - positive flows', () => {
 
     await expect(page).toHaveURL('https://www.saucedemo.com/');
     await expect(loginPage.loginButton).toBeVisible();
+    await expect(loginPage.logo).toBeVisible();
   });
 });
